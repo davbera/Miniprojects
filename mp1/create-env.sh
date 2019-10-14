@@ -245,3 +245,23 @@ do
         echo $temp
     fi
 done
+
+#S3 Object based storage
+echo "Creating bucket with name $S3BUCKETNAME..."
+temp=$(aws s3api create-bucket --bucket $S3BUCKETNAME --region us-east-1 2>&1)
+if [ $? -eq 0 ]; then
+    echo "Bucket created successfully"
+    if [ -a www/IITLogo.png ]; then
+        echo "Putting object IITLogo to the bucket..."
+        temp=$(aws s3api put-object --bucket $S3BUCKETNAME --key IITLogo --body www/IIT-logo.png 2>&1)
+        if [ $? -eq 0 ]; then
+            echo "Object put successfully to the bucket "
+        else
+            echo "There was an error while putting object to the bucket. The error was:"
+            echo $temp
+        fi
+    fi
+else 
+    echo "There was an error while creating bucket. The error was:"
+    echo $temp
+fi
