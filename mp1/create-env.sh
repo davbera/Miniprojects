@@ -199,3 +199,49 @@ else
     echo "There was an error while registering the instances to the load-balancer. The error was:"
     echo $temp
 fi
+
+#Create an additional 10 GB EBS (Elastic Block Store) per EC2 instance and attach them
+if [ $COUNT -gt 0 ]; then
+    echo "For each ec2 instance an additional 10 GB EBS volume is going to be created and attached..."
+fi
+
+INSTANCES=(${INSTANCES// / })
+for i in `seq 0 $(($COUNT-1))`
+do
+    echo "Creating volume..."
+    ZONE=$(aws ec2 describe-instances --query "Reservations[*].Instances[*].Placement.AvailabilityZone" --filter "Name=instance-id,Values=${INSTANCES[$i]}")
+    temp=$(aws ec2 create-volume --availability-zone $ZONE --size 10)
+    if [ $? -eq 0 ]; then
+        temp=(${temp// / })
+        VOLUMEIDS[$i]=${temp[6]}
+        echo "Volume ${temp[6]} successfully created"
+    else
+        echo "There was an error while creating volume. The error was:"
+        echo $temp
+        exit 1
+    fi
+done
+
+echo "Waiting volumes to be available..."
+aws ec2 wait volume-available --volume-ids ${VOLUMEIDS[@]}
+echo "Volumes are available"
+
+echo "Waiting instances to be running..."
+aws ec2 wait instance-running --instance-ids ${INSTANCES[@]}
+echo "Instances are available"
+
+
+for i in `seq 0 $(($COUNT-1))`
+do    
+    INSTANCE=${INSTANCES[$i]}
+    VOLUME=${VOLUMEIDS[$i]}
+
+    echo "Volume ${VOLUME} is going to be attached to instance ${INSTANCE}..."
+    temp=$(aws ec2 attach-volume --device /dev/xvdf --instance-id ${INSTANCE} --volume-id ${VOLUME} 2>&1)
+    if [ $? -eq 0 ]; then
+        echo "Volume attached succesfully"
+    else 
+        echo "There was an error while attaching volume to instance. The error was:"
+        echo $temp
+    fi
+done
