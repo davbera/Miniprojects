@@ -135,3 +135,20 @@ if [[ -z "${S3BUCKETNAME}" ]]; then
         echo
     fi
 fi
+
+#Create instances
+echo "Creating instances..."
+if [ -a "$USERFILEDATA" ]; then
+    temp=$(aws ec2 run-instances --image-id $IMAGEID --count $COUNT --instance-type t2.micro --key-name $KEYNAME --security-groups $SECURITYGROUP --user-data file://$USERFILEDATA 2>&1)
+else 
+    echo "No additional file parameter has been specified"
+    temp=$(aws ec2 run-instances --image-id $IMAGEID --count $COUNT --instance-type t2.micro --key-name $KEYNAME --security-groups $SECURITYGROUP 2>&1)    
+fi
+
+if [ $? -eq 0 ]; then
+    echo "Instances successfully created"
+else
+    echo "There was a problem creating the instances. The error is:"
+    echo $temp
+    exit 1
+fi
