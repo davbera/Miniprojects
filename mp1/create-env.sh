@@ -152,3 +152,50 @@ else
     echo $temp
     exit 1
 fi
+
+
+INSTANCES=`aws ec2 describe-instances --filters "Name=instance-state-code,Values=0" --query 'Reservations[*].Instances[*].InstanceId'`
+AVA_ZONES=$(aws ec2 describe-availability-zones --query "AvailabilityZones[*].ZoneName")
+
+echo "Load balancer with name '$ELBNAME' is going to be created..."
+temp=$(aws elb create-load-balancer --load-balancer-name $ELBNAME --listeners "Protocol=HTTP,LoadBalancerPort=80,InstanceProtocol=HTTP,InstancePort=80" --availability-zones $AVA_ZONES 2>&1)
+if [ $? -eq 0 ]; then
+    echo "Load balancer $ELBNAME successfully created"
+else
+    echo "There was an error when creating the load-balancer. The error was:"
+    echo $temp
+    exit 1
+fi
+
+echo "Creating load-balancer sticky policy to loadbalancer '$ELBNAME'..."
+#temp=$(aws elb create-app-cookie-stickiness-policy --load-balancer-name $ELBNAME --policy-name my-app-cookie-policy --cookie-name my-app-cookie 2>&1)
+temp=$(aws elb create-lb-cookie-stickiness-policy --load-balancer-name $ELBNAME --policy-name my-cookie-policy 2>&1)
+if [ $? -eq 0 ]; then
+    echo "Sticky policy successfull created. Applying policy to the load-balancer '$ELBNAME'"
+    temp=$(aws elb set-load-balancer-policies-of-listener --load-balancer-name $ELBNAME --load-balancer-port 80 --policy-names my-cookie-policy 2>&1)
+    if [ $? -eq 0 ]; then
+        echo "Sticky policy applied successfully"
+    else
+        echo "There was an error while applying policy to load-balancer $ELBNAME. The error was"
+        echo $temp
+    fi
+else 
+    echo "There was an error while creating sticky policy. The error was:"
+    echo $temp
+fi
+
+#Attach instance to Elastic Load Balancer
+#wait for instance status running
+echo "Waiting for instances to be in running status to be added to the load-balancer...."
+if [ -z "$INSTANCES" ]; then
+    aws ec2 wait instance-running --instance-ids $INSTANCES
+fi
+
+echo "The instances are in running status. They are going to be register to the load-balancer $ELBNAME..."
+temp=$(aws elb register-instances-with-load-balancer --load-balancer-name $ELBNAME --instances $INSTANCES 2>&1)
+if [ $? -eq 0 ]; then
+    echo "The instances were register with the load-balancer successfully"
+else
+    echo "There was an error while registering the instances to the load-balancer. The error was:"
+    echo $temp
+fi
