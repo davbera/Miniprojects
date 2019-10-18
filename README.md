@@ -3,17 +3,20 @@
 ## 1. Project Description
 The project is part of the course ITMO544 Cloud Computing Technologies (Illinois Institute of Technology)
 
-This folder is composed by different miniprojects (3 miniprojects) developed to practice with AWS services. A project with a higer number name value is in lower number name projects, i.e mp2 is based on mp1.
+This project is composed by different miniprojects that aims to practice with different AWS services and scripting.
 
-The aim of these miniprojects is to create a Web Application that allows an user to upload an image. Once the image is uploaded to the server, some image processing is done backwards.
+This project defines a web application that allows an user to upload an image and received a customized one.
+Each miniproject creates a tier 4 cloud environment formed by an Application Load Balancer, frontend and backend instances, database and storage system, queue system and a notification system.
+
+The frontend instances provide a web application that allow users to upload an image via a load balancer. The image is stored in a storage system and processed by a backend instance. A customized image (or the URL to download it) is returned to the user.
 
 I hereby recommend for future students of this course not to copy from this project. I have added some features and this kind of project is easy to change or add new services.
 
-## 2. AWS Services
-EC2
-S3
-SNS
-SQS
-RDS
+Each project has a more detailed description in its own folder
 
-There should be at least 3 miniprojects but mi intention is to add more features.
+## 2. AWS Services
+EC2  
+S3  
+SNS  
+SQS  
+RDS  
