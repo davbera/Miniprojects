@@ -15,8 +15,11 @@ I hereby recommend for future students of this course not to copy from this proj
 Each project has a more detailed description in its own folder
 
 ## 2. AWS Services
-EC2  
-S3  
-SNS  
-SQS  
-RDS  
+|          | MP1 | MP2 | MP3 |
+|----------|-----|-----|-----|
+| EC2      | ✔   | ✔   | ✔   |
+| AS-Group |     |     | ✔   |
+| S3       | ✔   | ✔   | ✔   |
+| RDS      |     | ✔   | ✔   |
+| SQS      |     | ✔   | ✔   |
+| SNS      |     | ✔   | ✔   | 
